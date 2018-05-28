@@ -1,0 +1,141 @@
+C51 COMPILER V9.00   MAIN                                                                  09/07/2016 17:17:22 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <a1602.h>
+   3          #define uint unsigned int
+   4          #define uchar unsigned char
+   5          
+   6          sbit voice=P1^3;                   //定义蜂鸣器接口
+   7          sbit key=P3^4;                     //定义按键接口
+   8          int i=0;                                   //i用于计数按键次数
+   9          
+  10          uchar code sound[]={0x60,0x40,0x60,0x40,0x40,0x40,0x40,0x40,0x39,0x40,0x39,0x40,0x40,0x40,
+  11                              0x48,0x40,0x48,0x40,0x4c,0x40,0x4c,0x40,0x55,0x40,0x55,0x40,0x60,0x40,
+  12                              0x40,0x40,0x40,0x40,0x48,0x40,0x48,0x40,0x4c,0x40,0x4c,0x40,0x55,0x40,
+  13                              0x40,0x40,0x40,0x40,0x48,0x40,0x48,0x40,0x4c,0x40,0x4c,0x40,0x55,0x40,0x00,
+  14                             };                           //歌曲频率表
+  15          uchar code sound1[]={0xff,0x40,0xff,0x40,0x4c,0x20,0x40,0x20,0x39,0x20,0xff,0x20,0x40,0x20,
+  16                              0x39,0x20,0xff,0x20,0x40,0x20,0x39,0x20,0x30,0x20,0x40,0x20,0x39,0x20,
+  17                              0x4c,0x20,0xff,0x20,0x4c,0x20,0x40,0x20,0x39,0x20,0xff,0x20,0x40,0x20,
+  18                              0x39,0x20,0xff,0x20,0x40,0x20,0x39,0x20,0x26,0x20,0x30,0x20,0x2b,0x20,
+  19                              0x39,0x20,0xff,0x20,0x4c,0x20,0x40,0x20,0x39,0x20,0xff,0x20,0x40,0x20,
+  20                              0x39,0x20,0xff,0x20,0x40,0x20,0x39,0x20,0x30,0x20,0x40,0x20,0x39,0x20,
+  21                              0x4c,0x20,0x40,0x20,0x60,0x20,0x55,0x20,0x4c,0x40,0x30,0x40,0x39,0x40,
+  22                              0x26,0x40,0x2b,0x20,0x26,0x10,0x2b,0x10,0x30,0x20,0x2b,0x20,0x39,0x40,
+  23                              0xff,0x40,0x39,0x40,0x39,0x40,0x39,0x40,0x39,0x10,0x30,0x10,0x2b,0x10,0x26,0x10,
+  24                              0x39,0x40,0x39,0x40,0x39,0x20,0x40,0x20,0x40,0x20,0x39,0x20,0x39,0x40,
+  25                              0x39,0x40,0x39,0x40,0x39,0x10,0x30,0x10,0x2b,0x10,0x26,0x10,0x39,0x40,
+  26                              0x39,0x40,0x39,0x20,0x24,0x20,0x24,0x20,0x26,0x20,0x39,0x40,0x39,0x40,0x39,0x40,0x39,0
+             -x10,0x30,0x10,0x2b,0x10,0x26,0x10,
+  27                              0x39,0x40,0x39,0x40,0x39,0x20,0x40,0x20,0x40,0x20,0x39,0x20,0x39,0x40,
+  28                              0x39,0x40,0x39,0x40,0x39,0x10,0x30,0x10,0x2b,0x10,0x26,0x10,0x1c,0x40,
+  29                              0xff,0x10,0x40,0x20,0x40,0x20,0x39,0x20,0x39,0x40,0x00,
+  30                                                  };
+  31          uchar code sound2[]={0x60,0x40,0x60,0x40,0x40,0x40,0x40,0x40,0x39,0x40,0x39,0x40,0x40,0x40,
+  32                              0x48,0x40,0x48,0x40,0x4c,0x40,0x4c,0x40,0x55,0x40,0x55,0x40,0x60,0x40,
+  33                              0x40,0x40,0x40,0x40,0x48,0x40,0x48,0x40,0x4c,0x40,0x4c,0x40,0x55,0x40,
+  34                              0x40,0x40,0x40,0x40,0x48,0x40,0x48,0x40,0x4c,0x40,0x4c,0x40,0x55,0x40,0x00,
+  35                             };                                   
+  36          
+  37          uchar jp;
+  38          
+  39          uint j=0,k=0;
+  40          
+  41          void DelayMS(uint x);              //毫秒延时 函数原型
+  42          void play(unsigned char *sound);   //播放函数原型
+  43          
+  44          void main(){
+  45   1      while(1)
+  46   1      {
+  47   2          unsigned char song[3][20] = {"small stars","happy land","happy birthday"};    //歌曲目录
+  48   2              unsigned char welcome[20] = "welcome to use !";                                                           //欢迎界面
+  49   2          TMOD=0x01;                  //设置定时器T0工作于方式1
+  50   2              IE=0x82;                        //允许T0中断
+  51   2          TH0=0xd8;
+  52   2              TL0=0xef;                       //设置计时器的初始值
+  53   2              TR0=1;                          //开始计时
+  54   2              LCD_Init();         //1602初始化
+C51 COMPILER V9.00   MAIN                                                                  09/07/2016 17:17:22 PAGE 2   
+
+  55   2              
+  56   2              if(!key)
+  57   2              {                                //判断按钮按下
+  58   3                      DelayMS(100);   //延时按钮消抖
+  59   3                      if(!key)
+  60   3                      {
+  61   4                              i++;}
+  62   3                                              }
+  63   2              switch(i%3)
+  64   2              {
+  65   3                      case 0:LCD_Clear();LCD_Write_String(0,1,welcome);LCD_Write_String(0,2,song[i]);play(sound);break;       //确定
+             -播放的是哪首歌并输出到液晶屏上
+  66   3                      case 1:LCD_Clear();LCD_Write_String(0,1,welcome);LCD_Write_String(0,2,song[i]);play(sound1);break;
+  67   3                      case 2:LCD_Clear();LCD_Write_String(0,1,welcome);LCD_Write_String(0,2,song[i]);play(sound2);break;
+  68   3          }
+  69   2      }
+  70   1      
+  71   1      
+  72   1      }
+  73          
+  74          time0() interrupt 1 using 1{                                       //计时器1
+  75   1          TH0=0xd8;
+  76   1              TL0=0xef;
+  77   1      }
+  78          
+  79          void DelayMS(uint x){           //毫秒暂停
+  80   1          uchar t;
+  81   1          while(x--)
+  82   1              for(t=0;t<120;t++);
+  83   1      }
+  84          
+  85          void play(unsigned char *sound){                                   //播放函数
+  86   1              uint dpjs=0;            //读谱技术，从0开始
+  87   1          uchar yj;                   //每个音节
+  88   1              
+  89   1              yj=sound[dpjs]; //读取音节
+  90   1                      while(yj!=0x00){
+  91   2                              dpjs=dpjs+1;
+  92   2                              jp=sound[dpjs];                 //读取节拍
+  93   2                              if(yj!=0xff){           //音节不为休止符
+  94   3                                      for(j=0;j<jp*24;j++){
+  95   4                                              voice=~voice;
+  96   4                                              for(k=0;k<yj*2;k++); 
+  97   4                                      }
+  98   3                                      voice=0;
+  99   3                              }else{          //休止符，不播放
+ 100   3                                      voice=0;
+ 101   3                                      for(j=0;j<jp*24;j++){
+ 102   4                                              for(k=0;k<yj*2;k++); 
+ 103   4                                      }
+ 104   3                              }
+ 105   2                              j=0,k=0;
+ 106   2                              DelayMS(75);
+ 107   2                              dpjs=dpjs+1;
+ 108   2                              yj=sound[dpjs]; //读取音节
+ 109   2                      }
+ 110   1                      i++;
+ 111   1                      dpjs=0; 
+ 112   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.00   MAIN                                                                  09/07/2016 17:17:22 PAGE 3   
+
+   CODE SIZE        =    662    ----
+   CONSTANT SIZE    =    413    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7      86
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
